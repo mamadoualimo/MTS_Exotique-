@@ -3,8 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Facture;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Security\Core\User\User;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @method Facture|null find($id, $lockMode = null, $lockVersion = null)
@@ -17,6 +18,19 @@ class FactureRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Facture::class);
+    }
+
+    public function findNextChrono(User $user)
+    {
+        return $this->createQueryBuilder("i")
+            ->select("i.chrono")
+            ->join("i.commande", "c")
+            ->where("c.user = :user")
+            ->setParameter("user", $user)
+            ->orderBy("i.chrono", "DESC")
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getSingleScalarResult() + 1;
     }
 
     // /**
